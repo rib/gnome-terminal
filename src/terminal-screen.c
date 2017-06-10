@@ -1625,15 +1625,19 @@ terminal_screen_button_press (GtkWidget      *widget,
     {
       if (!(event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)))
         {
+          TerminalWindow *window;
+
           /* on right-click, we should first try to send the mouse event to
            * the client, and popup only if that's not handled. */
           if (button_press_event && button_press_event (widget, event))
             return TRUE;
 
-          terminal_screen_do_popup (screen, event, hyperlink, url, url_flavor, number_info);
-          hyperlink = NULL; /* adopted to the popup info */
-          url = NULL; /* ditto */
-          number_info = NULL; /* ditto */
+          window = terminal_screen_get_window (screen);
+          if (window)
+            {
+              g_action_activate (g_action_map_lookup_action (G_ACTION_MAP (window), "paste"),
+                                 g_variant_new_string ("primary"));
+            }
           return TRUE;
         }
       else if (!(event->state & (GDK_CONTROL_MASK | GDK_MOD1_MASK)))

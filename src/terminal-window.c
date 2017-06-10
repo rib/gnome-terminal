@@ -304,7 +304,10 @@ clipboard_targets_received_cb (GtkClipboard *clipboard,
                                 data);
     return;
   } else /* if (gtk_targets_include_text (targets, n_targets)) */ {
-    vte_terminal_paste_clipboard (VTE_TERMINAL (data->screen));
+    if (gtk_clipboard_get_selection (clipboard) == GDK_SELECTION_PRIMARY)
+      vte_terminal_paste_primary (VTE_TERMINAL (data->screen));
+    else
+      vte_terminal_paste_clipboard (VTE_TERMINAL (data->screen));
   }
 
   g_object_unref (data->screen);
@@ -665,7 +668,10 @@ action_paste_cb (GSimpleAction *action,
   data->screen = g_object_ref (priv->active_screen);
   data->uris_as_paths = g_str_equal (mode, "uri");
 
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
+  if (g_str_equal (mode, "primary"))
+      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_PRIMARY);
+  else
+      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD);
   gtk_clipboard_request_targets (clipboard,
                                  (GtkClipboardTargetsReceivedFunc) clipboard_targets_received_cb,
                                  data);
